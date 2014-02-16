@@ -1,4 +1,5 @@
-#include <SoftwareSerial.h>
+#include "SoftwareSerial.h"
+
 
 /** 
 * Serial COM17 38400
@@ -56,20 +57,20 @@ void setup()
   sprintf(msg1, "%s%c", "hello world!", ctl_z);
   sprintf(at_cmgs_cmd, "AT+CMGS=\"%s\"\r\n","09332034751");
 
-  GSMSend("AT\r\n", debug);
+  GSMSend("AT\r\n");
   ReadMySerial(); // OK
   delay(300);
 
-  GSMSend("AT+CMGF=1\r\n", debug);
+  GSMSend("AT+CMGF=1\r\n");
   ReadMySerial(); // OK
   delay(300);
 
-  GSMSend(at_cmgs_cmd, debug);
+  GSMSend(at_cmgs_cmd);
   ReadMySerial(); // OK
   delay(300);
 
-  GSMSend(msg1, debug);
-  delay(300);
+  GSMSend(msg1);
+  delay(500);
   ReadMySerial(); // OK
 
 }
