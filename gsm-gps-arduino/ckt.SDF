@@ -5,7 +5,7 @@ Doc. no.: <NONE>
 Revision: <NONE>
 Author:   <NONE>
 Created:  01/25/14
-Modified: 01/25/14
+Modified: 02/23/14
 
 *PROPERTIES,0    
 
@@ -139,12 +139,11 @@ LCD_D7,GT
 LCD2,PS,6
 J4,PS,4
 
-LCD_RS,6
+LCD_RS,5
 LCD_RS,GT
 J7,PS,1
 J6,PS,6
 J5,PS,6
-LCD1,PS,4
 J3,PS,6
 
 MOSI,5
@@ -178,9 +177,10 @@ SRX,GT
 J8,PS,4
 J4,PS,6
 
-TX,3
+TX,4
 TX,GT
 J8,PS,5
+LCD1,PS,4
 J4,PS,7
 
 RX,3
