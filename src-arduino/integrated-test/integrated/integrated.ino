@@ -2,7 +2,14 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "SoftwareSerial.h"
+#include <Wire.h>
+#include "RTClib.h"
 
+
+/*****************************************************************
+ * RTC Componentes
+ ****************************************************************/
+RTC_DS1307 RTC;
 
 /*****************************************************************
  * LCD Componentes
@@ -223,79 +230,139 @@ void write1byte(unsigned char reg, unsigned char dat0)
 }
 void setup()
 {
-  Serial.begin(9600);
-  DDRB = (1<<PORTB5)|(1<<PORTB3)|(1<<PORTB2);
-  PORTB = (1<<PORTB2);
-  SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0)|(1<<CPOL)|(0<<CPHA);
-  _delay_ms(100);
-  write2byte(0x09,0x80,0x08);
-  _delay_ms(100);
-  write2byte(0x19,0x0,0x00);
-  _delay_ms(100);
-  write1byte(0x0E,0x00);
-  _delay_ms(100);
-  write1byte(0x0D,0x00);
-  _delay_ms(100);
-  write1byte(0x0F,0x82);
-  // configure the microprocessor pins for the data lines
-  lcd_D7_ddr |= (1<<lcd_D7_bit);                  // 4 data lines - output
-  lcd_D6_ddr |= (1<<lcd_D6_bit);
-  lcd_D5_ddr |= (1<<lcd_D5_bit);
-  lcd_D4_ddr |= (1<<lcd_D4_bit);
-  // configure the microprocessor pins for the control lines
-  lcd_E_ddr |= (1<<lcd_E_bit);                    // E line - output
-  lcd_RS_ddr |= (1<<lcd_RS_bit);                  // RS line - output
+	/*****************************************************************
+	 * ADE 7753 SPI Initialization
+	 ****************************************************************/
 
-  // initialize the LCD controller as determined by the defines (LCD instructions)
-  lcd_init_4d();
-  _delay_ms(3000);
+	Serial.begin(9600);
+	DDRB = (1<<PORTB5)|(1<<PORTB3)|(1<<PORTB2);
+	PORTB = (1<<PORTB2);
+	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0)|(1<<CPOL)|(0<<CPHA);
+	_delay_ms(100);
+	write2byte(0x09,0x80,0x08);
+	_delay_ms(100);
+	write2byte(0x19,0x0,0x00);
+	_delay_ms(100);
+	write1byte(0x0E,0x00);
+	_delay_ms(100);
+	write1byte(0x0D,0x00);
+	_delay_ms(100);
+	write1byte(0x0F,0x82);
+	// configure the microprocessor pins for the data lines
+	lcd_D7_ddr |= (1<<lcd_D7_bit);                  // 4 data lines - output
+	lcd_D6_ddr |= (1<<lcd_D6_bit);
+	lcd_D5_ddr |= (1<<lcd_D5_bit);
+	lcd_D4_ddr |= (1<<lcd_D4_bit);
+	// configure the microprocessor pins for the control lines
+	lcd_E_ddr |= (1<<lcd_E_bit);                    // E line - output
+	lcd_RS_ddr |= (1<<lcd_RS_bit);                  // RS line - output
+
+	// initialize the LCD controller as determined by the defines (LCD instructions)
+	lcd_init_4d();
+	_delay_ms(3000);
+
+	/*****************************************************************
+	 * GSM Initialization
+	 ****************************************************************/
+	mySerial.begin(9600);
+
+
+	/*****************************************************************
+	 * RTC Initialization
+	 ****************************************************************/
+  // Wire.begin();
+  // RTC.begin();  
+  // RTC.adjust(DateTime(__DATE__, __TIME__));
+
+  // if (! RTC.isrunning()) {
+  //   Serial.println("RTC is NOT running!");
+  //   // following line sets the RTC to the date & time this sketch was compiled
+  // }
 }
 
 void loop()
 {
-  char data[500];
-  V = read3byte(0x25);
-  I = read3byte(0x16); 
-  C = read3byte(0x03);
-  s = read3byte(0x06);
-  unsigned long ApparentP = (0.572*s);
-  if (ApparentP < 10)
-  {
-    sprintf(data,"I000%d,D9999,P000%ld;",METER_ID,ApparentP);
-  }
-  else if (ApparentP > 10 && ApparentP < 100)
-  {
-    sprintf(data,"I000%d,D9999,P00%ld;",METER_ID,ApparentP);
-  }
-   else if (ApparentP > 100 && ApparentP < 1000)
-  {
-    sprintf(data,"I000%d,D9999,P0%ld;",METER_ID,ApparentP);
-  }
-  else if (ApparentP >= 1000)
-  {
-    sprintf(data,"I000%d,D9999,P%ld;",METER_ID,ApparentP);
-  }
-  Serial.println(data);
-  LCD_goto(1,1);
-  lcd_write_string_4d(data);
-  for (int a = 0; a < 500; a ++){
-    data[a] = 0;
-  }
 
+	/*****************************************************************
+	 * ADE 7753 Get Data
+	 ****************************************************************/
+  char data[17];
+	char data2[17];
+	V = read3byte(0x25);
+	I = read3byte(0x16); 
+	C = read3byte(0x03);
+	s = read3byte(0x06);
+	unsigned long ApparentP = (0.572*s);
+	sprintf(data,"I0%d,D99,P%07d;",METER_ID,ApparentP);
 
+	/*****************************************************************
+	 * Print Data on LCD
+	 ****************************************************************/
+	Serial.println(data);
+	LCD_goto(1,1);
+	lcd_write_string_4d(data);
 
+	/*****************************************************************
+	 * Print Time on LCD -- Commented out because it does not run.
+	 ****************************************************************/
+  // DateTime now = RTC.now();
 
-/*****************************************************************
- * GSM Initialization
- ****************************************************************/
-  // set the data rate for the SoftwareSerial port
-  mySerial.begin(9600);
-  delay(300);
+  // // Serial.print(now.year(), DEC);
+  // // Serial.print('/');
+  // // Serial.print(now.month(), DEC);
+  // // Serial.print('/');
+  // // Serial.print(now.day(), DEC);
+  // // Serial.print(' ');
+  // // Serial.print(now.hour(), DEC);
+  // // Serial.print(':');
+  // // Serial.print(now.minute(), DEC);
+  // // Serial.print(':');
+  // // Serial.print(now.second(), DEC);
+  // // Serial.println();
+
+  // // Serial.println();
+
+  // if (! RTC.isrunning()) {
+  //   sprintf(data,"RTC NOT RUNNING");
+  // } else {
+  //   sprintf(data,"%d/%d/%d %d:%d:%d", now.month(), now.day(), now.year(), now.hour(), now.minute(),  now.second());
+  // }
   
+  // LCD_goto(2,1);
+  // lcd_write_string_4d(data);
+  // clear_data(data);
 
+  /*****************************************************************
+   * Check if time has passed 1 minute
+   ****************************************************************/
+  if (millis()/(unsigned long)1000 % (unsigned long)60 == (unsigned long)0) {
+    sprintf(data2,"SENDING SMS...");
+    LCD_goto(2,1);
+    lcd_write_string_4d(data2);
+    clear_data(data2);
 
+    GSMSendSMS(data, "09157764387");
 
-  _delay_ms(1000);
+    sprintf(data2,"FINISHED SMS...");
+    LCD_goto(2,1);
+    lcd_write_string_4d(data2);
+    clear_data(data2);
+
+    delay(1000);
+  } else {
+    sprintf(data,"SEND SMS IN: %2d", (unsigned long)60 - (millis()/(unsigned long)1000 % (unsigned long)60));
+    LCD_goto(2,1);
+    lcd_write_string_4d(data);
+    clear_data(data);
+  }
+
+  delay(1000);
+}
+
+void clear_data(char *data) {
+	for (int a = 0; a < sizeof(data) - 1; a ++){
+		data[a] = 0;
+	}
 }
 
 void lcd_init_4d(void)
