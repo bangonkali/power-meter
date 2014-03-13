@@ -94,24 +94,28 @@ void GSMSend(char *msg, bool debug = true) {
 }
 
 void GSMSendSMS(char *msg, char *number) {
-  sprintf(msg1, "%s%c", msg, ctl_z);
-  sprintf(at_cmgs_cmd, "AT+CMGS=\"%s\"\r\n", number);
+	char at_cmgs_cmd[30] = {'\0'};
+	char msg1[160] = {'\0'};
+	char ctl_z = 0x1A;
 
-  GSMSend("AT\r\n", debug);
-  ReadMySerial(); // OK
-  delay(300);
+	sprintf(msg1, "%s%c", msg, ctl_z);
+	sprintf(at_cmgs_cmd, "AT+CMGS=\"%s\"\r\n", number);
 
-  GSMSend("AT+CMGF=1\r\n", debug);
-  ReadMySerial(); // OK
-  delay(300);
+	GSMSend("AT\r\n", debug);
+	ReadMySerial(); // OK
+	delay(300);
 
-  GSMSend(at_cmgs_cmd, debug);
-  ReadMySerial(); // OK
-  delay(300);
+	GSMSend("AT+CMGF=1\r\n", debug);
+	ReadMySerial(); // OK
+	delay(300);
 
-  GSMSend(msg1, debug);
-  delay(300);
-  ReadMySerial(); // OK
+	GSMSend(at_cmgs_cmd, debug);
+	ReadMySerial(); // OK
+	delay(300);
+
+	GSMSend(msg1, debug);
+	delay(300);
+	ReadMySerial(); // OK
 }
 
 /*****************************************************************
@@ -278,9 +282,7 @@ void loop()
     data[a] = 0;
   }
 
-  char at_cmgs_cmd[30] = {'\0'};
-  char msg1[160] = {'\0'};
-  char ctl_z = 0x1A;
+
 
 
 /*****************************************************************
