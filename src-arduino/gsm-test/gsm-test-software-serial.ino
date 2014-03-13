@@ -55,7 +55,7 @@ void setup()
   // mySerial.println("Hello, world?");
 
   sprintf(msg1, "%s%c", "hello world!", ctl_z);
-  sprintf(at_cmgs_cmd, "AT+CMGS=\"%s\"\r\n","09332034751");
+  sprintf(at_cmgs_cmd, "AT+CMGS=\"%s\"\r\n","09157764387");
 
   GSMSend("AT\r\n");
   ReadMySerial(); // OK
