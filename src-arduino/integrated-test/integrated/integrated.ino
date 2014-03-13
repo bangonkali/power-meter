@@ -228,6 +228,13 @@ void write1byte(unsigned char reg, unsigned char dat0)
   while(!(SPSR&(1<<SPIF)));
   ADE7753dis();
 }
+
+
+/*****************************************************************
+ * Accumulator Code
+ ****************************************************************/
+unsigned long accumulated_power = 0;
+
 void setup()
 {
 	/*****************************************************************
@@ -279,7 +286,7 @@ void setup()
   //   // following line sets the RTC to the date & time this sketch was compiled
   // }
 }
-
+  
 void loop()
 {
 
@@ -336,12 +343,17 @@ void loop()
    * Check if time has passed 1 minute
    ****************************************************************/
   if (millis()/(unsigned long)1000 % (unsigned long)60 == (unsigned long)0) {
+    accumulated_power = accumulated_power + ApparentP;
+
     sprintf(data2,"SENDING SMS...");
     LCD_goto(2,1);
     lcd_write_string_4d(data2);
     clear_data(data2);
 
+    sprintf(data,"I0%d,D99,P%07d;",METER_ID,accumulated_power);
+    accumulated_power = 0;
     GSMSendSMS(data, "09157764387");
+    clear_data(data);
 
     sprintf(data2,"FINISHED SMS...");
     LCD_goto(2,1);
@@ -349,7 +361,10 @@ void loop()
     clear_data(data2);
 
     delay(1000);
+
   } else {
+    
+    accumulated_power = accumulated_power + ApparentP;
     sprintf(data,"SEND SMS IN: %2d", (unsigned long)60 - (millis()/(unsigned long)1000 % (unsigned long)60));
     LCD_goto(2,1);
     lcd_write_string_4d(data);
